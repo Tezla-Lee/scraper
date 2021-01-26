@@ -15,6 +15,7 @@ URL = f"https://www.airbnb.co.kr/s/{location}/homes?tab_id=home_tab&refinement_p
 count = 0
 
 
+# 검색 결과 페이지 수
 def extract_pages():
     result = requests.get(URL)
     soup = BeautifulSoup(result.text, "html.parser")
@@ -34,16 +35,22 @@ def extract_accommodation(html):
     room_number = link[8:]
 
     # 사진 5개
-    driver.get(
-        f"https://www.airbnb.co.kr/rooms/{room_number}?federated_search_id=f9a68ffc-8498-44a6-a0d6-e0281b30a491"
-        "&source_impression_id=p3_1611588826_7FLZBGwSxmQjBix%2F&guests=1&adults=1&check_in=2025-02-12&check_out=2025"
-        "-02-13")
+    # driver.get(
+    #     f"https://www.airbnb.co.kr/rooms/{room_number}?federated_search_id=f9a68ffc-8498-44a6-a0d6-e0281b30a491"
+    #     "&source_impression_id=p3_1611588826_7FLZBGwSxmQjBix%2F&guests=1&adults=1&check_in=2025-02-12&check_out=2025"
+    #     "-02-13")
 
     # 사진 전부
     # driver.get(
     #     f"https://www.airbnb.co.kr/rooms/{room_number}/photos?federated_search_id=dbb92de4-d73d-4db5-a219-3833d70d0f02&source_impression_id=p3_1611589387_BesBFgCKme%2FMznw2&guests=1&adults=1&check_in=2021-02-03&check_out=2021-02-04")
 
-    time.sleep(3.5)
+    # 후기 모두 보기
+    driver.get(
+        f"https://www.airbnb.co.kr/rooms/{room_number}/reviews?federated_search_id=f9a68ffc-8498-44a6-a0d6-e0281b30a491"
+        "&source_impression_id=p3_1611588826_7FLZBGwSxmQjBix%2F&guests=1&adults=1&check_in=2025-02-12&check_out=2025"
+        "-02-13")
+
+    time.sleep(5)
 
     html = driver.page_source
 
@@ -82,6 +89,8 @@ def extract_accommodation(html):
 
     type = extract_house_type(soup)
 
+    reviews = extract_reviews(soup)
+
     return
 
 
@@ -96,9 +105,12 @@ def extract_accommodations(last_page):
         for result in results:
             print(f"{count} ...")
             count += 1
-            accommodation = extract_accommodation(result)
-            accommodations.append(accommodation)
-
+            try:
+                accommodation = extract_accommodation(result)
+                accommodations.append(accommodation)
+            except AttributeError as e:
+                print(e)
+                pass
     print("\nFinish Scraping !")
     return accommodations
 
@@ -109,6 +121,7 @@ def get_accommodations():
     return accommodations
 
 
+# 사진
 def extract_pictures(html):
     pictures_html = html.find_all("img", {"class": "_6tbg2q"})
     pictures = []
@@ -118,12 +131,14 @@ def extract_pictures(html):
     return pictures
 
 
+# 제목
 def extract_title(html):
     title = html.find("div", {"class": "_mbmcsn"}).find("h1")
 
     return title.stringdef
 
 
+# 기본 요금 (1박)
 def extract_price(html):
     price = html.find("span", {"class": "_pgfqnw"}).string.replace(",", "").replace("₩", "")
 
@@ -152,7 +167,7 @@ def extract_the_number_of_review(html):
     return the_number_of_review
 
 
-# 특징... 최대 인원, 침실, 침대, 욕실
+# 특징(?) 최대 인원, 침실, 침대, 욕실
 def extract_features(html):
     results = html.find("div", {"class": "_tqmy57"}).find_all("span")
     features = []
@@ -177,6 +192,8 @@ def extract_facilities(html):
 # 위치
 def extract_address(html):
     result = html.find("span", {"class": "_13myk77s"})
+    if not result:
+        result = html.find("div", {"class": "_nu65sd"})
 
     return result.string
 
@@ -184,17 +201,35 @@ def extract_address(html):
 # 호스트 이름
 def extract_host_name(html):
     result = html.find("div", {"class": "_xcsyj0"})
-    print(result.string.split(" ")[0].replace("님이", ""))
 
     return result.string.split(" ")[0].replace("님이", "")
 
 
-# 호스트 이름, 집 종류, 건물 유형
+# 집 종류, 건물 유형
 def extract_house_type(html):
     result = html.find("div", {"class": "_xcsyj0"})
 
     results = result.string.split(" ")[-1].split(" ")
     results[0] = results[0].replace("의", "")
-    print(results)
 
     return results
+
+
+# 후기 _1gjypya // _1lc9bb6 : ID // _1ixuu7m : 연월 // _1y6fhhr : 내용
+def extract_reviews(html):
+    results = html.find_all("div", {"class": "_1gjypya"})
+    # print(results)
+    for result in results:
+        date = result.find("div", {"class": "_1ixuu7m"})
+        date = date.string
+        name = result.find("div", {"class": "_1lc9bb6"}).__str__()
+        print(remove_tag(name).replace(date, ""))
+        print(date)
+    return
+
+
+# 태그 제거
+def remove_tag(content):
+    cleaner = re.compile("<.*?>")
+    clean_text = re.sub(cleaner, "", content)
+    return clean_text
