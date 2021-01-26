@@ -55,8 +55,8 @@ def extract_accommodation(html):
     price = extract_price(soup)
     # print(price)
 
-    star = extract_star(soup)
-    # print(star)
+    rating = extract_rating(soup)
+    # print(rating)
 
     the_number_of_review = extract_the_number_of_review(soup)
     # print(the_number_of_review)
@@ -75,6 +75,10 @@ def extract_accommodation(html):
     features = extract_features(soup)  # [최대 인원, 침실, 침대, 욕실]
 
     facilities = extract_facilities(soup)
+
+    address = extract_address(soup)
+
+    host_name = extract_host_name(soup)
 
     return
 
@@ -124,16 +128,18 @@ def extract_price(html):
     return price
 
 
-def extract_star(html):
-    star = html.find("span", {"class": "_1jpdmc0"})
-    if star is not None:
-        star = star.string
+# 별점
+def extract_rating(html):
+    rating = html.find("span", {"class": "_1jpdmc0"})
+    if rating is not None:
+        rating = rating.string
     else:
-        star = 0
+        rating = 0
 
-    return star
+    return rating
 
 
+# 후기 수
 def extract_the_number_of_review(html):
     the_number_of_review = html.find("span", {"class": "_bq6krt"})
     if the_number_of_review is not None:
@@ -164,3 +170,26 @@ def extract_facilities(html):
         if facility:
             facilities.append(facility)
     return facilities
+
+
+# 위치
+def extract_address(html):
+    result = html.find("span", {"class": "_13myk77s"})
+
+    return result.string
+
+
+# 호스트 이름
+def extract_host_name(html):
+    result = html.find("div", {"class": "_xcsyj0"})
+    print(result.string.split(" ")[0].replace("님이", ""))
+
+    return result.string.split(" ")[0].replace("님이", "")
+
+# 호스트 이름, 집 종류, 건물 유형
+def extract_host_name_and_house_type(html):
+    result = html.find("div", {"class": "_xcsyj0"})
+    # results = result.string.split(" ")
+    results = result.string.split(" ")
+
+    return result.string
