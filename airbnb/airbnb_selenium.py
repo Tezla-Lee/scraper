@@ -68,12 +68,7 @@ def extract_accommodation(html):
     the_number_of_review = extract_the_number_of_review(soup)
     # print(the_number_of_review)
 
-    description = soup.find("div", {"class": "_1y6fhhr"}).find("span").__str__() \
-        .replace("<span>", "") \
-        .replace("<br/>", "\n").replace(
-        "<span class=\"_1di55y9\">",
-        "").replace("</span>", "")
-    # print(description)
+    description = extract_description(soup)
 
     pictures = extract_pictures(soup)
 
@@ -233,3 +228,14 @@ def remove_tag(content):
     cleaner = re.compile("<.*?>")
     clean_text = re.sub(cleaner, "", content)
     return clean_text
+
+
+# 숙소 설명
+def extract_description(html):
+    description = html.find("div", {"class": "_1y6fhhr"}).find("span").__str__() \
+        .replace("<span>", "") \
+        .replace("<br/>", "\n").replace(
+        "<span class=\"_1di55y9\">",
+        "").replace("</span>", "")
+
+    return description
