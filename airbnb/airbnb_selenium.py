@@ -80,6 +80,8 @@ def extract_accommodation(html):
 
     host_name = extract_host_name(soup)
 
+    type = extract_house_type(soup)
+
     return
 
 
@@ -186,10 +188,13 @@ def extract_host_name(html):
 
     return result.string.split(" ")[0].replace("님이", "")
 
-# 호스트 이름, 집 종류, 건물 유형
-def extract_host_name_and_house_type(html):
-    result = html.find("div", {"class": "_xcsyj0"})
-    # results = result.string.split(" ")
-    results = result.string.split(" ")
 
-    return result.string
+# 호스트 이름, 집 종류, 건물 유형
+def extract_house_type(html):
+    result = html.find("div", {"class": "_xcsyj0"})
+
+    results = result.string.split(" ")[-1].split(" ")
+    results[0] = results[0].replace("의", "")
+    print(results)
+
+    return results
