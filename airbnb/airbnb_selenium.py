@@ -69,7 +69,7 @@ def extract_accommodation(html):
     the_number_of_review = extract_the_number_of_review(soup)
     # print(the_number_of_review)
 
-    description = extract_description(soup)
+    accommodation_description = extract_accommodation_description(soup)
 
     pictures = extract_pictures(soup)
 
@@ -86,6 +86,8 @@ def extract_accommodation(html):
     type = extract_house_type(soup)
 
     reviews = extract_reviews(soup)
+
+    location_description = extract_location_description(soup)
 
     return
 
@@ -211,7 +213,7 @@ def extract_house_type(html):
     return results
 
 
-# 후기 _1gjypya // _1lc9bb6 : ID // _1ixuu7m : 연월 // _1y6fhhr : 내용
+# 후기 [id, date, content]
 def extract_reviews(html):
     results = html.find_all("div", {"class": "_1gjypya"})
     reviews = []
@@ -240,8 +242,19 @@ def remove_tag(content):
 
 
 # 숙소 설명
-def extract_description(html):
+def extract_accommodation_description(html):
     description = html.find("div", {"class": "_1y6fhhr"}).find("span").__str__() \
+        .replace("<span>", "") \
+        .replace("<br/>", "\n").replace(
+        "<span class=\"_1di55y9\">",
+        "").replace("</span>", "")
+
+    return description
+
+
+# 위치 상세 설명
+def extract_location_description(html):
+    description = html.find("div", {"class": "_vd6w38n"}).find("div", {"class": "_1y6fhhr"}).find("span").__str__() \
         .replace("<span>", "") \
         .replace("<br/>", "\n").replace(
         "<span class=\"_1di55y9\">",
