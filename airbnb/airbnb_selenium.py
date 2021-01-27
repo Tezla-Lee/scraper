@@ -26,6 +26,7 @@ def extract_pages():
     for link in links[0:-1]:
         pages.append(int(link.string))
     max_page = pages[-1]
+    print(f"{location} 검색...")
     print("검색된 페이지 수 : " + max_page.__str__())
     return max_page
 
@@ -130,7 +131,7 @@ def extract_pictures(html):
 def extract_title(html):
     title = html.find("div", {"class": "_mbmcsn"}).find("h1")
 
-    return title.stringdef
+    return title.string
 
 
 # 기본 요금 (1박)
@@ -200,7 +201,7 @@ def extract_host_name(html):
     return result.string.split(" ")[0].replace("님이", "")
 
 
-# 집 종류, 건물 유형
+# 건물 유형, 숙소 유형
 def extract_house_type(html):
     result = html.find("div", {"class": "_xcsyj0"})
 
@@ -213,20 +214,28 @@ def extract_house_type(html):
 # 후기 _1gjypya // _1lc9bb6 : ID // _1ixuu7m : 연월 // _1y6fhhr : 내용
 def extract_reviews(html):
     results = html.find_all("div", {"class": "_1gjypya"})
-    # print(results)
+    reviews = []
     for result in results:
-        date = result.find("div", {"class": "_1ixuu7m"})
-        date = date.string
+        review = []
+        date = result.find("div", {"class": "_1ixuu7m"}).string
         name = result.find("div", {"class": "_1lc9bb6"}).__str__()
-        print(remove_tag(name).replace(date, ""))
-        print(date)
-    return
+        content = result.find("div", {"class": "_1y6fhhr"}).find("span").__str__()
+        id = remove_tag(name).replace(date, "")
+
+        review.append(id)
+        review.append(date)
+        review.append(remove_tag(content))
+
+        reviews.append(review)
+
+    return reviews
 
 
 # 태그 제거
 def remove_tag(content):
     cleaner = re.compile("<.*?>")
     clean_text = re.sub(cleaner, "", content)
+
     return clean_text
 
 
