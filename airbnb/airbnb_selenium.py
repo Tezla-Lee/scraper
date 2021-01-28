@@ -6,6 +6,8 @@ import re
 
 driver = webdriver.Chrome('/Users/macbok/Downloads/chromedriver')
 
+time.sleep(3)
+
 OFFSET = 20
 
 # location = input("지역을 입력하세요 : ")
@@ -107,7 +109,11 @@ def extract_accommodation(html):
     location_description = extract_location_description(soup)
     # print(location_description)
 
-    extract_coordinate(soup)
+    transportation_description = extract_transportation_description(soup)
+    # print(transportation_description)
+
+    coordinate = extract_coordinate(soup)
+    print(coordinate)
 
     return
 
@@ -126,7 +132,7 @@ def extract_accommodations(last_page):
             try:
                 accommodation = extract_accommodation(result)
                 accommodations.append(accommodation)
-            except AttributeError as e:
+            except Exception as e:
                 print(e)
                 pass
     print("\nFinish Scraping !")
@@ -287,6 +293,21 @@ def extract_location_description(html):
     return ""
 
 
+# 교통편 상세 설명
+def extract_transportation_description(html):
+    try:
+        description = html.find("div", {"class": "_8uj869"}).find("div", {"class": "_1y6fhhr"}).find("span").__str__() \
+            .replace("<span>", "") \
+            .replace("<br/>", "\n").replace(
+            "<span class=\"_1di55y9\">",
+            "").replace("</span>", "")
+        return description
+    except Exception as e:
+        pass
+
+    return ""
+
+
 # 호스트의 후기 개수
 def extract_host_review_num(html):
     try:
@@ -319,4 +340,9 @@ def extract_coordinate(html):
     coordinate = html.find("div", {"class": "_8uj869"}).find("a")["href"] \
         .replace("https://maps.google.com/maps?ll=", "").replace("&z=14&t=m&hl=ko&gl=KR&mapclient=apiv3", "")
 
-    return coordinate.split(",")
+    coordinate = coordinate.split(",")
+
+    if coordinate.__len__() != 2:
+        raise Exception('좌표가 없습니다.')
+
+    return coordinate
