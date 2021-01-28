@@ -11,7 +11,9 @@ OFFSET = 20
 # location = input("지역을 입력하세요 : ")
 location = "마포"
 
-URL = f"https://www.airbnb.co.kr/s/{location}/homes?tab_id=home_tab&refinement_paths%5B%5D=%2Fhomes&date_picker_type=calendar&source=structured_search_input_header&search_type=search_query&check_in=2021-02-16&check_out=2021-02-17"
+URL = f"https://www.airbnb.co.kr/s/{location}/homes?tab_id=home_tab&refinement_paths%5B%5D=%2Fhomes&date_picker_type" \
+      f"=calendar&source=structured_search_input_header&search_type=search_query&check_in=2021-02-16&check_out=2021" \
+      f"-02-17 "
 count = 0
 
 
@@ -47,18 +49,19 @@ def extract_accommodation(html):
 
     # 후기 모두 보기
     driver.get(
-        f"https://www.airbnb.co.kr/rooms/{room_number}/reviews?federated_search_id=f9a68ffc-8498-44a6-a0d6-e0281b30a491"
-        "&source_impression_id=p3_1611588826_7FLZBGwSxmQjBix%2F&guests=1&adults=1&check_in=2025-02-12&check_out=2025"
+        f"https://www.airbnb.co.kr/rooms/{room_number}/location?reviews?federated_search_id=f9a68ffc-8498-44a6-a0d6"
+        f"-e0281b30a491&source_impression_id=p3_1611588826_7FLZBGwSxmQjBix%2F&guests=1&adults=1&check_in=2025-02-12"
+        f"&check_out=2025 "
         "-02-13")
 
-    time.sleep(5)
+    time.sleep(10)
 
     html = driver.page_source
 
     soup = BeautifulSoup(html, "html.parser")
 
     title = extract_title(soup)
-    # print(title.string)
+    # print(title)
 
     price = extract_price(soup)
     # print(price)
@@ -70,24 +73,41 @@ def extract_accommodation(html):
     # print(the_number_of_review)
 
     accommodation_description = extract_accommodation_description(soup)
+    # print(accommodation_description)
 
     pictures = extract_pictures(soup)
+    # print(pictures)
 
     summary = soup.find("div", {"class": "_tqmy57"}).find("div", {"class": "_xcsyj0"}).string
+    # print(summary)
 
     features = extract_features(soup)  # [최대 인원, 침실, 침대, 욕실]
+    # print(features)
 
     facilities = extract_facilities(soup)
+    # print(facilities)
 
-    address = extract_address(soup)
+    # address = extract_address(soup)
+    # print(address)
 
     host_name = extract_host_name(soup)
+    # print(host_name)
+
+    host_review_num = extract_host_review_num(soup)
+    # print(host_review_num)
 
     type = extract_house_type(soup)
+    # print(type)
 
     reviews = extract_reviews(soup)
 
+    host_desc = extract_host_description(soup)
+    # print(host_desc)
+
     location_description = extract_location_description(soup)
+    # print(location_description)
+
+    extract_coordinate(soup)
 
     return
 
@@ -187,13 +207,13 @@ def extract_facilities(html):
     return facilities
 
 
-# 위치
+# 위치 (X)
 def extract_address(html):
-    result = html.find("span", {"class": "_13myk77s"})
-    if not result:
-        result = html.find("div", {"class": "_nu65sd"})
+    result = html.find("div", {"class": "_1yocemr"})
+    # if not result:
+    #     result = html.find("div", {"class": "_nu65sd"})
 
-    return result.string
+    return remove_tag(result.__str__())
 
 
 # 호스트 이름
@@ -209,7 +229,7 @@ def extract_house_type(html):
 
     results = result.string.split(" ")[-1].split(" ")
     results[0] = results[0].replace("의", "")
-
+    # print(results)
     return results
 
 
@@ -229,7 +249,7 @@ def extract_reviews(html):
         review.append(remove_tag(content))
 
         reviews.append(review)
-
+        print(id)
     return reviews
 
 
@@ -254,10 +274,49 @@ def extract_accommodation_description(html):
 
 # 위치 상세 설명
 def extract_location_description(html):
-    description = html.find("div", {"class": "_vd6w38n"}).find("div", {"class": "_1y6fhhr"}).find("span").__str__() \
-        .replace("<span>", "") \
-        .replace("<br/>", "\n").replace(
-        "<span class=\"_1di55y9\">",
-        "").replace("</span>", "")
+    try:
+        description = html.find("div", {"class": "_vd6w38n"}).find("div", {"class": "_1y6fhhr"}).find("span").__str__() \
+            .replace("<span>", "") \
+            .replace("<br/>", "\n").replace(
+            "<span class=\"_1di55y9\">",
+            "").replace("</span>", "")
+        return description
+    except Exception as e:
+        pass
 
-    return description
+    return ""
+
+
+# 호스트의 후기 개수
+def extract_host_review_num(html):
+    try:
+        review_num = html.find("li", {"class": "_1belslp"}).find("span", {"class": "_pog3hg"}).string
+        review_num = review_num.split(" ")
+
+        return review_num[1].replace("개", "")
+    except Exception as e:
+        pass
+
+    return 0
+
+
+# 호스트 소개
+def extract_host_description(html):
+    try:
+        desc = html.find("div", {"class": "_uz1jgk"}).find("div", {"class": "_1y6fhhr"}).__str__() \
+            .replace("<span>", "") \
+            .replace("<br/>", "\n").replace("<div class=\"_1y6fhhr\">", "").replace("</div>", "")
+
+        return desc
+    except Exception as e:
+        pass
+
+    return ""
+
+
+# 좌표 [위도, 경도]
+def extract_coordinate(html):
+    coordinate = html.find("div", {"class": "_8uj869"}).find("a")["href"] \
+        .replace("https://maps.google.com/maps?ll=", "").replace("&z=14&t=m&hl=ko&gl=KR&mapclient=apiv3", "")
+
+    return coordinate.split(",")
