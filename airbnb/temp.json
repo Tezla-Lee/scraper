@@ -159,5 +159,47 @@
     'building_type': '콘도(아파트)',
     'host_name': '범석',
     'host_review_num': 0
+  },
+
+  {
+    "reservation": {
+      "id": 5,
+      "checkInDate": "2020-01-18",
+      "checkoutDate": "2020-01-20",
+      "guestNum": 5,
+      "totalPrice": 10000,
+      "paymentDate": "2020-02-02",
+      "reservationCode": null,
+      "canceled": false
+    },
+    "accommodationDto": {
+      "accommodation": {
+        "id": 2,
+        "city": null,
+        "gu": null,
+        "title": "단독주택이다",
+        "bathroomNum": 5,
+        "bedroomNum": 2,
+        "bedNum": null,
+        "price": 10000,
+        "capacity": 5,
+        "contact": null,
+        "latitude": "3.3",
+        "longitude": "4.4",
+        "locationDesc": null,
+        "transportationDesc": null,
+        "accommodationDesc": null,
+        "hostDesc": null,
+        "rating": "3.9",
+        "reviewNum": 30,
+        "accommodationType": "집전체",
+        "buildingType": "단독주택",
+        "hostName": null,
+        "hostReviewNum": 3
+      },
+      "reviews": null,
+      "bookedDates": null,
+      "accommodationPictures": []
+    }
   }
 ]
