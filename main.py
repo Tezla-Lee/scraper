@@ -13,14 +13,17 @@ import time
 import datetime
 
 city = "서울특별시"
-gus = {"종로구", "성동구", "광진구", "중랑구", "성북구", "도봉구", "노원구", "은평구", "서대문구", "강서구",
-       "영등포구", "동작구", "관악구", "서초구", "강동구"}
+
+gus = {"강남구", "강북구", "강서구", "관악구", "광진구", "구로구", "노원구", "도봉구", "동대문구", "서대문구", "서초구", "성동구",
+       "성북구", "송파구", "양천구", "중구", "중랑구"}
+
 driver = webdriver.Chrome('/Users/macbok/Downloads/chromedriver')
 
 start_time = time.time()
 first_start_id = int(read_ac_id())
 all_id = int(read_all_id())
 save_all_id(all_id + 1)
+print(f"통합 파일 {all_id}번 째")
 
 for gu in gus:
     start_id = int(read_ac_id())
@@ -50,7 +53,11 @@ for gu in gus:
     print()
     print(times)
 
-
 print()
 print(f"총 걸린 시간 : {str(datetime.timedelta(seconds=time.time() - start_time))}")
 driver.close()
+
+
+
+# gus = {"강남구", "강동구", "강북구", "강서구", "관악구", "광진구", "구로구", "금천구", "노원구", "도봉구", "동대문구", "동작구", "마포구", "서대문구", "서초구", "성동구",
+#        "성북구", "송파구", "양천구", "영등포구", "용산구", "은평구", "종로구", "중구", "중랑구"}

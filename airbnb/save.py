@@ -188,11 +188,15 @@ def save_to_file_photo_csv(photos, city, gu):
 
 def add_data(accomms, photos, reviews, num, city, start_id):
     file_path = f"json/{city}/통합/숙박/{str(num)}_{city}_{str(start_id)}.json"
-    with open(file_path, 'w') as file:
-        try:
+    try:
+        with open(file_path, 'r') as file:
             json_data = json.load(file)
-        except:
-            json_data = []
+    except:
+        with open(file_path, 'w') as file:
+            try:
+                json_data = json.load(file)
+            except:
+                json_data = []
 
     for accomm in accomms:
         json_data.append(accomm)
@@ -204,11 +208,15 @@ def add_data(accomms, photos, reviews, num, city, start_id):
     outfile.close()
 
     file_path = f"json/{city}/통합/사진/{str(num)}_{city}_{str(start_id)}.json"
-    with open(file_path, 'w') as file:
-        try:
+    try:
+        with open(file_path, 'r') as file:
             json_data = json.load(file)
-        except:
-            json_data = []
+    except:
+        with open(file_path, 'w') as file:
+            try:
+                json_data = json.load(file)
+            except:
+                json_data = []
 
     for photo in photos:
         json_data.append(photo)
@@ -220,11 +228,15 @@ def add_data(accomms, photos, reviews, num, city, start_id):
     outfile.close()
 
     file_path = f"json/{city}/통합/리뷰/{str(num)}_{city}_{str(start_id)}.json"
-    with open(file_path, 'w') as file:
-        try:
+    try:
+        with open(file_path, 'r') as file:
             json_data = json.load(file)
-        except:
-            json_data = []
+    except:
+        with open(file_path, 'w') as file:
+            try:
+                json_data = json.load(file)
+            except:
+                json_data = []
 
     for review in reviews:
         json_data.append(review)

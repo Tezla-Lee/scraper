@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import requests
 import time
 import re
+from playsound import playsound
 
 OFFSET = 20
 
@@ -10,17 +11,17 @@ time_cycle = 5
 
 
 def get_accommodations(city, gu, start, driver):
-    URL = f"https://www.airbnb.co.kr/s/{gu}/homes?tab_id=home_tab&refinement_paths%5B%5D=%2Fhomes&date_picker_type=calendar&source=structured_search_input_header&search_type=search_query&check_in=2021-04-05&check_out=2021-04-06"
+    url = f"https://www.airbnb.co.kr/s/{gu}/homes?tab_id=home_tab&refinement_paths%5B%5D=%2Fhomes&date_picker_type=calendar&source=structured_search_input_header&search_type=search_query&check_in=2021-04-05&check_out=2021-04-06"
 
-    last_page = extract_pages(URL, city, gu)
-    accommodations = extract_accommodations(last_page, URL, city, gu, start, driver)
+    last_page = extract_pages(url, city, gu)
+    accommodations = extract_accommodations(last_page, url, city, gu, start, driver)
 
     return accommodations
 
 
 # 검색 결과 페이지 수
-def extract_pages(URL, city, gu):
-    result = requests.get(URL)
+def extract_pages(url, city, gu):
+    result = requests.get(url)
     soup = BeautifulSoup(result.text, "html.parser")
     pagination = soup.find("div", {"class": "_1px14rv"})
     links = pagination.find_all('a')
@@ -53,14 +54,14 @@ def extract_accommodation(html, city, gu, number, driver, accommodation_id):
     # print(accommodation_description)
 
     reviews = extract_reviews(soup, number)
-    # print(reviews)
+    print(reviews)
 
     driver.get(
         f"https://www.airbnb.co.kr/rooms/{room_number}/location?federated_search_id=f9a68ffc-8498-44a6-a0d6"
         f"-e0281b30a491&source_impression_id=p3_1611588826_7FLZBGwSxmQjBix%2F&guests=1&adults=1&check_in=2021-04-05&check_out=2021-04-06")
 
-    print(f"https://www.airbnb.co.kr/rooms/{room_number}/federated_search_id=f9a68ffc-8498-44a6-a0d6"
-        f"-e0281b30a491&source_impression_id=p3_1611588826_7FLZBGwSxmQjBix%2F&guests=1&adults=1&check_in=2021-04-05&check_out=2021-04-06")
+    print(f"https://www.airbnb.co.kr/rooms/{room_number}/location?federated_search_id=f9a68ffc-8498-44a6-a0d6"
+          f"-e0281b30a491&source_impression_id=p3_1611588826_7FLZBGwSxmQjBix%2F&guests=1&adults=1&check_in=2021-04-05&check_out=2021-04-06")
 
     time.sleep(time_cycle)
 
@@ -69,41 +70,35 @@ def extract_accommodation(html, city, gu, number, driver, accommodation_id):
     soup = BeautifulSoup(html, "html.parser")
 
     title = extract_title(soup)
-    # print(title)
+    print(title)
 
     price = extract_price(soup)
-    # print(price)
+    print(price)
 
     rating = extract_rating(soup)
-    # print(rating)
+    print(rating)
 
     review_num = extract_the_number_of_review(soup)
-    # print(review_num)
+    print(review_num)
 
     pictures = extract_pictures(soup)
-    # print(pictures)
-
-    # summary = soup.find("div", {"class": "_tqmy57"}).find("div", {"class": "_xcsyj0"}).string
-    # print(summary)
+    print(pictures)
 
     features = extract_features(soup)  # [최대 인원, 침실, 침대, 욕실]
-    # print(features)
+    print(features)
     capacity = int(features[0])
     bedroom_num = int(features[1])
     bed_num = int(features[2])
     bathroom_num = int(features[3])
 
-    # facilities = extract_facilities(soup)
-    # print(facilities)
-
-    # address = extract_address(soup)
-    # print(address)
+    address = extract_address(soup)
+    print(address)
 
     host_name = extract_host_name(soup)
-    # print(host_name)
+    print(host_name)
 
     host_review_num = extract_host_review_num(soup)
-    # print(host_review_num)
+    print(host_review_num)
 
     types = extract_type(soup)
     if types[0] == '호스팅하는':
@@ -112,7 +107,7 @@ def extract_accommodation(html, city, gu, number, driver, accommodation_id):
     else:
         building_type = types[0]
         accommodation_type = types[1]
-    # print(types)
+    print(types)
 
     host_desc = extract_host_description(soup)
     # print(host_desc)
@@ -126,7 +121,7 @@ def extract_accommodation(html, city, gu, number, driver, accommodation_id):
     # print(transportation_description)
 
     coordinate = extract_coordinate(soup)
-    # print(coordinate)
+    print(coordinate)
     latitude = float(coordinate[0])
     longitude = float(coordinate[1])
 
@@ -136,6 +131,7 @@ def extract_accommodation(html, city, gu, number, driver, accommodation_id):
                 "accommodation_id": accommodation_id,
                 "city": city,
                 "gu": gu,
+                "address": address,
                 "title": rmEmoji_ascii(title),
                 "capacity": capacity,
                 "bathroom_num": bathroom_num,
@@ -155,76 +151,91 @@ def extract_accommodation(html, city, gu, number, driver, accommodation_id):
                 "building_type": building_type,
                 "host_name": host_name,
                 "host_review_num": host_review_num,
-            }, [
-            {
-                "url": pictures[0],
-                "accommodation_id": number
-            }, {
-                "url": pictures[1],
-                "accommodation_id": number
-            }, {
-                "url": pictures[2],
-                "accommodation_id": number
-            }, {
-                "url": pictures[3],
-                "accommodation_id": number
-            }, {
-                "url": pictures[4],
-                "accommodation_id": number
-            }
-        ],
+            },
+            [
+                {
+                    "url": pictures[0],
+                    "accommodation_id": number
+                },
+                {
+                    "url": pictures[1],
+                    "accommodation_id": number
+                },
+                {
+                    "url": pictures[2],
+                    "accommodation_id": number
+                },
+                {
+                    "url": pictures[3],
+                    "accommodation_id": number
+                },
+                {
+                    "url": pictures[4],
+                    "accommodation_id": number
+                }
+            ],
             reviews
         ]
 
 
-def extract_accommodations(last_page, URL, city, gu, start, driver):
-    accommodations = []
-    accommodations.append({
-        "accommodation_id": "",
-        "city": "",
-        "gu": "",
-        "title": "",
-        "capacity": "",
-        "bathroom_num": "",
-        "bedroom_num": "",
-        "bed_num": "",
-        "price": "",
-        "contact": "",
-        "latitude": "",
-        "longitude": "",
-        "location_desc": "",
-        "transportation_desc": "",
-        "accommodation_desc": "",
-        "host_desc": "",
-        "rating": "",
-        "review_num": "",
-        "accommodation_type": "",
-        "building_type": "",
-        "host_name": "",
-        "host_review_num": ""
-    })
-    pictures = []
-    reviews = []
-    reviews.append({
-        "name": "",
-        "created_date": "",
-        "content": "",
-        "accommodation_id": "",
-        "rating": ""
-    }, )
+def extract_accommodations(last_page, url, city, gu, start, driver):
+    accommodations = [
+        {
+            "accommodation_id": "",
+            "city": "",
+            "gu": "",
+            "address": "",
+            "title": "",
+            "capacity": "",
+            "bathroom_num": "",
+            "bedroom_num": "",
+            "bed_num": "",
+            "price": "",
+            "contact": "",
+            "latitude": "",
+            "longitude": "",
+            "location_desc": "",
+            "transportation_desc": "",
+            "accommodation_desc": "",
+            "host_desc": "",
+            "rating": "",
+            "review_num": "",
+            "accommodation_type": "",
+            "building_type": "",
+            "host_name": "",
+            "host_review_num": ""
+        }
+    ]
+    pictures = [
+        {
+            "url": "",
+            "accommodation_id": ""
+        }
+    ]
+
+    reviews = [
+        {
+            "name": "",
+            "created_date": "",
+            "content": "",
+            "accommodation_id": "",
+            "rating": ""
+        }
+    ]
     accommodation_count = start
 
     # for page in range(1):
     for page in range(last_page):
         print(f"Scraping {city} {gu} page: {page}\n")
-        result = requests.get(f"{URL}&items_offset={page * OFFSET}")
+        result = requests.get(f"{url}&items_offset={page * OFFSET}")
         soup = BeautifulSoup(result.text, "html.parser")
         results = soup.find_all("div", {"class": "_8s3ctt"})
 
         for result in results:
             print(f"{accommodation_count}...")
             try:
-                accommodation_info = extract_accommodation(result, city, gu, accommodation_count, driver, accommodation_count)
+                accommodation_info = extract_accommodation(result, city, gu, accommodation_count, driver,
+                                                           accommodation_count)
                 accommodation = accommodation_info[0]
                 picture = accommodation_info[1]
                 review = accommodation_info[2]
@@ -246,6 +257,8 @@ def extract_accommodations(last_page, URL, city, gu, start, driver):
 
             except Exception as e:
                 print(e)
+                playsound("Blow.aiff")
+                print('\a')
                 pass
             print()
 
@@ -282,22 +295,32 @@ def extract_price(html):
 def extract_rating(html):
     rating = 0
     try:
-        rating = html.find("span", {"class": "_1hhxz3f"}).find("span", {"class": "_pgfqnw"}).string
+        rating = html.find("span", {"class": "_12si43g"}).string
     except:
         pass
-
     return float(rating)
 
 
 # 후기 수
 def extract_the_number_of_review(html):
-    the_number_of_review = html.find("span", {"class": "_bq6krt"})
-    if the_number_of_review is not None:
+    review_num = 0
+    try:
+        the_number_of_review = html.find("span", {"class": "_bq6krt"})
         the_number_of_review = the_number_of_review.string.replace("(", "").replace(")", "")
-    else:
-        the_number_of_review = 0
+        return int(the_number_of_review)
+    except Exception as e:
+        print("후기 개수를 찾을 수 없습니다.")
+        pass
 
-    return int(the_number_of_review)
+    try:
+        the_number_of_review = html.find("span", {"class": "_bq6krt"})
+        the_number_of_review = the_number_of_review.string.split(" ")[-1].replace("개", "")
+        return int(the_number_of_review)
+    except Exception as e:
+        print("후기가 적어서 안보입니다.")
+        pass
+
+    return int(review_num)
 
 
 # 특징(?) 최대 인원, 침실, 침대, 욕실
@@ -325,13 +348,19 @@ def extract_facilities(html):
     return facilities
 
 
-# 위치 (X)
+# 상세 주소
 def extract_address(html):
-    result = html.find("div", {"class": "_1yocemr"})
-    # if not result:
-    #     result = html.find("div", {"class": "_nu65sd"})
+    result = ""
+    try:
+        result = html.find("span", {"class": "_jfp88qr"}).string
+    except:
+        try:
+            if not result:
+                result = html.find("div", {"class": "_1yocemr"}).string
+        except:
+            print("상세주소가 없습니다.")
 
-    return remove_tag(result.__str__())
+    return result
 
 
 # 호스트 이름
@@ -345,9 +374,6 @@ def extract_host_name(html):
 def extract_type(html):
     result = html.find("div", {"class": "_xcsyj0"})
 
-    # print(result)
-    # print(result.string.split(" "))
-    # print(result.string.split(" ")[-1])
     results = result.string.split(" ")
 
     if len(results) == 2:
@@ -355,7 +381,6 @@ def extract_type(html):
 
     results = results[-1].split(" ")
     results[0] = results[0].replace("의", "")
-    # print(results)
     return results
 
 
@@ -402,7 +427,6 @@ def extract_accommodation_description(html):
     except:
         pass
 
-    # print(description)
     return description
 
 
@@ -412,8 +436,6 @@ def extract_host_review_num(html):
         review_num = html.find("li", {"class": "_1belslp"}).find("span", {"class": "_pog3hg"}).string
         review_num = review_num.split(" ")
 
-        # print(review_num)
-        # print(int(review_num[-1].replace("개", "")))
         if len(review_num) != 2:
             return 0
         else:
@@ -452,15 +474,13 @@ def extract_coordinate(html):
 # 후기 [id, date, content]
 def extract_reviews(html, number):
     results = html.find_all("div", {"class": "_50mnu4"})
-    # print(results)
     reviews = []
     for result in results:
-        review = []
-        date = result.find("div", {"class": "_1ixuu7m"}).string
+        date = result.find("div", {"class": "_1ixuu7m"}).__str__()
         name = result.find("div", {"class": "_1lc9bb6"}).__str__()
         content = result.find("div", {"class": "_1xib9m0"}).find("span").__str__()
         id = remove_tag(name).replace(date, "")
-        date = date.replace("년 ", "-").replace("월", "-1")
+        date = remove_tag(date.replace("년 ", "-").replace("월", "-1"))
 
         reviews.append(
             {
